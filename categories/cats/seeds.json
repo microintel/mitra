@@ -1,0 +1,19 @@
+{
+  "topic": "Seed",
+  "topicPlural": "Seeds",
+  "icon": "🌱",
+  "tagline": "A Field Guide To",
+  "credit": "Made by Microintel",
+  "data": [
+    { "name": "Sunflower Seed", "url": "https://en.wikipedia.org/wiki/Sunflower_seed", "icon": "🌻" },
+    { "name": "Pumpkin Seed", "url": "https://en.wikipedia.org/wiki/Pumpkin_seed", "icon": "🎃" },
+    { "name": "Sesame Seed", "url": "https://en.wikipedia.org/wiki/Sesame", "icon": "🌰" },
+    { "name": "Chia Seed", "url": "https://en.wikipedia.org/wiki/Chia_seed", "icon": "🌱" },
+    { "name": "Flax Seed", "url": "https://en.wikipedia.org/wiki/Flax", "icon": "🌾" },
+    { "name": "Mustard Seed", "url": "https://en.wikipedia.org/wiki/Mustard_seed", "icon": "🟡" },
+    { "name": "Poppy Seed", "url": "https://en.wikipedia.org/wiki/Poppy_seed", "icon": "🌱" },
+    { "name": "Cumin Seed", "url": "https://en.wikipedia.org/wiki/Cumin", "icon": "🌱" },
+    { "name": "Fennel Seed", "url": "https://en.wikipedia.org/wiki/Fennel", "icon": "🌿" },
+    { "name": "Fenugreek Seed", "url": "https://en.wikipedia.org/wiki/Fenugreek", "icon": "🌿" }
+  ]
+}

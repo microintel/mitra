@@ -1,0 +1,19 @@
+{
+  "topic": "Fruit",
+  "topicPlural": "Fruits",
+  "icon": "🍎",
+  "tagline": "A Field Guide To",
+  "credit": "Made by Microintel",
+  "data": [
+    { "name": "Apple", "url": "https://en.wikipedia.org/wiki/Apple", "icon": "🍎" },
+    { "name": "Banana", "url": "https://en.wikipedia.org/wiki/Banana", "icon": "🍌" },
+    { "name": "Mango", "url": "https://en.wikipedia.org/wiki/Mango", "icon": "🥭" },
+    { "name": "Orange", "url": "https://en.wikipedia.org/wiki/Orange_(fruit)", "icon": "🍊" },
+    { "name": "Grapes", "url": "https://en.wikipedia.org/wiki/Grape", "icon": "🍇" },
+    { "name": "Watermelon", "url": "https://en.wikipedia.org/wiki/Watermelon", "icon": "🍉" },
+    { "name": "Pineapple", "url": "https://en.wikipedia.org/wiki/Pineapple", "icon": "🍍" },
+    { "name": "Strawberry", "url": "https://en.wikipedia.org/wiki/Strawberry", "icon": "🍓" },
+    { "name": "Peach", "url": "https://en.wikipedia.org/wiki/Peach", "icon": "🍑" },
+    { "name": "Pear", "url": "https://en.wikipedia.org/wiki/Pear", "icon": "🍐" }
+  ]
+}
