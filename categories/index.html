@@ -5,6 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Categories — Learn &amp; Quiz</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  /* Minimal scoped styles for the new search-clear button and fallback thumb.
+     Safe to remove/replace once equivalent rules exist in style.css instead. */
+  .search-row{ position:relative; }
+  .search-row #searchBox{ padding-right:2.25em; box-sizing:border-box; width:100%; }
+  .search-clear{
+    position:absolute; right:0.5em; top:50%; transform:translateY(-50%);
+    border:none; background:transparent; cursor:pointer; font-size:1.1em;
+    line-height:1; padding:0.2em 0.4em; color:inherit; opacity:0.6; display:none;
+  }
+  .search-clear:hover{ opacity:1; }
+  .cat-thumb img.img-fallback{ object-fit:contain; padding:15%; opacity:0.5; }
+  .cat-thumb{ position:relative; }
+  .cat-serial{
+    position:absolute; top:0.4em; left:0.4em;
+    background:rgba(0,0,0,0.65); color:#fff; font-size:0.75em;
+    min-width:1.6em; text-align:center; line-height:1.6em;
+    border-radius:999px; padding:0 0.4em; pointer-events:none;
+  }
+</style>
 </head>
 <body>
 
@@ -16,9 +36,10 @@
 
 <main class="cat-main">
   <div class="search-row">
-    <input type="text" id="searchBox" placeholder="Search categories…">
+    <input type="text" id="searchBox" placeholder="Search categories…" aria-label="Search categories">
+    <button type="button" class="search-clear" id="searchClear" aria-label="Clear search">✕</button>
   </div>
-  <div class="cat-note" id="catNote">Loading categories…</div>
+  <div class="cat-note" id="catNote" role="status" aria-live="polite">Loading categories…</div>
   <div class="cat-grid" id="catGrid"></div>
 </main>
 
@@ -38,16 +59,35 @@
 const catGrid = document.getElementById('catGrid');
 const catNote = document.getElementById('catNote');
 const searchBox = document.getElementById('searchBox');
+const searchClear = document.getElementById('searchClear');
 
 let allCategories = [];
 
+// Simple inline SVG placeholder used when a category image fails to load,
+// so a missing/broken image never shows a browser "broken image" icon.
+const FALLBACK_IMG =
+  'data:image/svg+xml;utf8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+       <rect width="100%" height="100%" fill="#e5e5e5"/>
+       <text x="50%" y="50%" font-size="14" fill="#888" text-anchor="middle" dy=".3em">No image</text>
+     </svg>`
+  );
+
 async function loadCategories(){
+  catNote.textContent = 'Loading categories…';
   try{
     const res = await fetch('cats/categories.json');
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
     allCategories = await res.json();
+    if(!Array.isArray(allCategories) || allCategories.length === 0){
+      catNote.textContent = 'No categories found in cats/categories.json.';
+      catGrid.innerHTML = '';
+      return;
+    }
     renderCategories(allCategories);
   }catch(e){
     catNote.textContent = 'Could not load cats/categories.json — make sure the cats folder is present.';
+    catGrid.innerHTML = '';
   }
 }
 
@@ -55,23 +95,49 @@ function renderCategories(categories){
   catNote.textContent = categories.length ? `${categories.length} categories` : 'No categories match your search';
   catGrid.innerHTML = '';
   categories.forEach(cat => {
+    // Serial number reflects the category's position in the original,
+    // unfiltered list (allCategories) so it stays stable while searching.
+    const serial = allCategories.indexOf(cat) + 1;
     const a = document.createElement('a');
     a.className = 'cat-card';
     a.href = `categories.html?data=${encodeURIComponent(cat.location)}`;
     a.innerHTML = `
-      <div class="cat-thumb"><img src="${cat.image}" alt="${cat.name}" loading="lazy"></div>
+      <div class="cat-thumb">
+        <span class="cat-serial">${serial}</span>
+        <img src="${cat.image}" alt="${cat.name}" loading="lazy">
+      </div>
       <div class="cat-label">${cat.name}</div>`;
+    // Fall back to a placeholder image instead of a broken-image icon.
+    const img = a.querySelector('img');
+    img.addEventListener('error', () => {
+      if(img.src !== FALLBACK_IMG){
+        img.src = FALLBACK_IMG;
+        img.classList.add('img-fallback');
+      }
+    }, { once: true });
     catGrid.appendChild(a);
   });
 }
 
-searchBox.addEventListener('input', () => {
+function applySearch(){
   const q = searchBox.value.trim().toLowerCase();
-  const filtered = allCategories.filter(cat => cat.name.toLowerCase().includes(q));
+  searchClear.style.display = q ? 'block' : 'none';
+  const filtered = q
+    ? allCategories.filter(cat => cat.name.toLowerCase().includes(q))
+    : allCategories;
   renderCategories(filtered);
+}
+
+searchBox.addEventListener('input', applySearch);
+
+searchClear.addEventListener('click', () => {
+  searchBox.value = '';
+  searchBox.focus();
+  applySearch();
 });
 
 loadCategories();
 </script>
 </body>
 </html>
+
