@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Categories — Learn &amp; Quiz</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Pick a Topic</div>
+  <h1>Learn &amp; Quiz</h1>
+  <p>Choose a category to start browsing and testing yourself</p>
+</header>
+
+<main class="cat-main">
+  <div class="search-row">
+    <input type="text" id="searchBox" placeholder="Search categories…">
+  </div>
+  <div class="cat-note" id="catNote">Loading categories…</div>
+  <div class="cat-grid" id="catGrid"></div>
+</main>
+
+<script>
+/* ==================================================================
+   categories.json shape:
+   [
+     { "name": "Vegetables", "image": "url-or-data-uri", "location": "vegetables.json" },
+     { "name": "Fruits",     "image": "url-or-data-uri", "location": "fruits.json" },
+     ...
+   ]
+
+   Clicking a card opens categories.html?data=<location>, so categories.html
+   loads that topic's data file (see the DATA_FILE param in categories.html).
+   ================================================================== */
+
+const catGrid = document.getElementById('catGrid');
+const catNote = document.getElementById('catNote');
+const searchBox = document.getElementById('searchBox');
+
+let allCategories = [];
+
+async function loadCategories(){
+  try{
+    const res = await fetch('cats/categories.json');
+    allCategories = await res.json();
+    renderCategories(allCategories);
+  }catch(e){
+    catNote.textContent = 'Could not load cats/categories.json — make sure the cats folder is present.';
+  }
+}
+
+function renderCategories(categories){
+  catNote.textContent = categories.length ? `${categories.length} categories` : 'No categories match your search';
+  catGrid.innerHTML = '';
+  categories.forEach(cat => {
+    const a = document.createElement('a');
+    a.className = 'cat-card';
+    a.href = `categories.html?data=${encodeURIComponent(cat.location)}`;
+    a.innerHTML = `
+      <div class="cat-thumb"><img src="${cat.image}" alt="${cat.name}" loading="lazy"></div>
+      <div class="cat-label">${cat.name}</div>`;
+    catGrid.appendChild(a);
+  });
+}
+
+searchBox.addEventListener('input', () => {
+  const q = searchBox.value.trim().toLowerCase();
+  const filtered = allCategories.filter(cat => cat.name.toLowerCase().includes(q));
+  renderCategories(filtered);
+});
+
+loadCategories();
+</script>
+</body>
+</html>

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learn &amp; Quiz</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <a href="index.html" style="display:inline-block;margin-bottom:8px;font-size:0.9rem;opacity:0.8;text-decoration:none;color:inherit;">← All categories</a>
+  <div class="eyebrow" id="eyebrowText">A Field Guide To</div>
+  <h1 id="mainTitle">Loading…</h1>
+  <p id="subTitle">Learn with real photos, then test your memory</p>
+</header>
+
+<nav class="tabs">
+  <button id="tabLearn" class="active">📖 Learn</button>
+  <button id="tabQuiz">🧠 Quiz</button>
+</nav>
+
+<main>
+  <section id="learnView" class="view active">
+    <div class="search-row">
+      <input type="text" id="searchBox" placeholder="Search…">
+    </div>
+    <div class="count-note" id="countNote">Loading data…</div>
+    <div class="grid-viewport" id="gridViewport">
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section id="quizView" class="view">
+    <div id="quizIntro" class="center-card">
+      <div class="big-icon"> </div>
+      <h2 id="quizTitle">Quiz</h2>
+      <p id="quizIntroText">All items, one at a time. Pick the correct name for each photo.</p>
+      <button class="btn-primary" id="startQuizBtn">Start Quiz</button>
+      <div class="load-note" id="loadNote"></div>
+    </div>
+
+    <div id="quizPlay" class="quiz-wrap" style="display:none;">
+      <div class="progress-row">
+        <span class="progress-label" id="progressLabel">Question 1 / 100</span>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <span class="score-pill" id="scorePill">Score 0</span>
+      </div>
+      <div class="quiz-card">
+        <div class="eyebrow">What is this called?</div>
+        <div class="quiz-thumb" id="quizThumb"></div>
+        <div class="quiz-question">Choose the correct name</div>
+        <div class="options" id="optionsWrap"></div>
+        <div class="next-row"><button id="nextBtn">Next →</button></div>
+      </div>
+    </div>
+
+    <div id="quizResult" class="center-card" style="display:none;">
+      <div class="big-icon">🏆</div>
+      <h2>Quiz Complete!</h2>
+      <div class="score-big" id="finalScore">0 / 100</div>
+      <p id="resultMsg">Nice work.</p>
+      <button class="btn-primary" id="retryBtn">Try Again</button>
+    </div>
+  </section>
+</main>
+
+<div id="lightbox">
+  <button id="lightboxClose" aria-label="Close">✕</button>
+  <img id="lightboxImg" src="" alt="">
+  <div id="lightboxCaption"></div>
+  <button id="lightboxSearch">🔍 Search this on Google</button>
+</div>
+
+<footer id="footerText">
+  Loading… · photos courtesy of Wikipedia (Wikimedia) · tap Learn to browse, Quiz to test yourself
+  <span class="credit" id="creditText">Made by Microintel</span>
+</footer>
+
+<script>
+/* ==================================================================
+   GENERIC LEARN + QUIZ APP
+   ------------------------------------------------------------------
+   This single index.html + style.css works for ANY topic. To reuse
+   it for a new topic (fruits, vehicles, flags, capitals, etc.) just
+   point DATA_FILE at a JSON file with this shape:
+
+   {
+     "topic": "Vegetable",          // singular, used in titles/messages
+     "topicPlural": "Vegetables",   // plural, used in counts/messages
+     "icon": "🥦",                  // emoji shown while loading
+     "tagline": "A Field Guide To", // small eyebrow line above the H1
+     "credit": "Made by Microintel",// footer credit line
+     "data": [
+       { "name": "Potato", "url": "https://en.wikipedia.org/wiki/Potato", "icon": "🥔" },
+       ...
+     ]
+   }
+
+   Only "data" is required — every other field falls back to a
+   sensible default if missing, so older/simpler JSON files still work.
+   ================================================================== */
+
+const params = new URLSearchParams(window.location.search);
+const DATA_FILE = params.get('data') || 'cats/vegetables.json'; // pass ?data=cats/fruits.json in the URL, or edit this default
+
+let items = [];
+let topicMeta = {
+  topic: 'Item',
+  topicPlural: 'Items',
+  icon: '📚',
+  tagline: 'A Field Guide To',
+  credit: ''
+};
+
+/* Pull the Wikipedia article title back out of a wiki URL, e.g.
+   "https://en.wikipedia.org/wiki/Bell_pepper" -> "Bell pepper" */
+function titleFromWikiUrl(url){
+  try{
+    const path = new URL(url).pathname; // "/wiki/Bell_pepper"
+    const slug = path.split('/').pop();
+    return decodeURIComponent(slug).replace(/_/g, ' ');
+  }catch(e){
+    return url;
+  }
+}
+
+function applyTopicText(){
+  document.title = `The ${topicMeta.topic} — Learn ${items.length} ${topicMeta.topicPlural}`;
+  document.getElementById('eyebrowText').textContent = topicMeta.tagline;
+  document.getElementById('mainTitle').textContent = `The ${topicMeta.topic}`;
+  document.getElementById('subTitle').textContent = `Learn ${items.length} ${topicMeta.topicPlural.toLowerCase()} with real photos, then test your memory`;
+  document.getElementById('searchBox').placeholder = `Search a ${topicMeta.topic.toLowerCase()}…`;
+  document.getElementById('quizTitle').textContent = `${topicMeta.topic} Quiz`;
+  document.getElementById('quizIntroText').textContent = `All ${items.length} items, one at a time. Pick the correct name for each photo.`;
+  document.getElementById('footerText').childNodes[0].textContent =
+    `${items.length} ${topicMeta.topicPlural.toLowerCase()} · photos courtesy of Wikipedia (Wikimedia) · tap Learn to browse, Quiz to test yourself `;
+  document.getElementById('creditText').textContent = topicMeta.credit || '';
+}
+
+async function loadItems(){
+  const res = await fetch(DATA_FILE);
+  const raw = await res.json();
+
+  // Support both the new wrapped format ({topic, data:[...]})
+  // and a plain array (the old format), for backwards compatibility.
+  const list = Array.isArray(raw) ? raw : (raw.data || []);
+
+  if(!Array.isArray(raw)){
+    topicMeta = {
+      topic: raw.topic || 'Item',
+      topicPlural: raw.topicPlural || (raw.topic ? raw.topic + 's' : 'Items'),
+      icon: raw.icon || '📚',
+      tagline: raw.tagline || 'A Field Guide To',
+      credit: raw.credit || ''
+    };
+  }
+
+  items = list.map(d => ({
+    n: d.name,
+    w: titleFromWikiUrl(d.url),
+    url: d.url,
+    f: d.icon || ''
+  }));
+}
+
+const imgCache = {};
+const hiResCache = {};
+
+async function fetchThumb(title, size){
+  const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&format=json&pithumbsize=${size || 320}&redirects=1&origin=*`;
+  try{
+    const res = await fetch(url);
+    const data = await res.json();
+    const pages = data.query && data.query.pages;
+    if(!pages) return null;
+    const page = Object.values(pages)[0];
+    return (page && page.thumbnail && page.thumbnail.source) ? page.thumbnail.source : null;
+  }catch(e){
+    return null;
+  }
+}
+
+async function ensureImage(item){
+  if(imgCache[item.n] !== undefined) return imgCache[item.n];
+  const url = await fetchThumb(item.w);
+  imgCache[item.n] = url;
+  paintAllFor(item);
+  return url;
+}
+
+async function preloadAll(){
+  const queueItems = items.slice();
+  let doneCount = 0;
+  const total = queueItems.length;
+  const loadNote = document.getElementById('loadNote');
+
+  async function worker(){
+    while(queueItems.length){
+      const item = queueItems.shift();
+      await ensureImage(item);
+      doneCount++;
+      if(loadNote) loadNote.textContent = doneCount < total ? `Loading photos… ${doneCount}/${total}` : '';
+      countNote.textContent = `${items.length} items · ${doneCount}/${total} photos loaded`;
+    }
+  }
+  const workers = Array.from({length: 8}, worker);
+  await Promise.all(workers);
+  countNote.textContent = `${items.length} items`;
+}
+
+const grid = document.getElementById('grid');
+const gridViewport = document.getElementById('gridViewport');
+const countNote = document.getElementById('countNote');
+const searchBox = document.getElementById('searchBox');
+
+/* O(1) name -> original position, instead of items.indexOf(it) per card */
+let itemIndexMap = new Map();
+
+function thumbInner(item){
+  const cached = imgCache[item.n];
+  if(cached){
+    return { html: `<img src="${cached}" alt="${item.n}" loading="lazy">`, loaded:true };
+  } else if(cached === null){
+    return { html: `<span class="fallback-icon">${item.f}</span>`, loaded:true };
+  }
+  return { html: '', loaded:false };
+}
+
+/* ---------------- Virtualized grid rendering ----------------
+   Only the rows currently visible in #gridViewport (plus a small
+   buffer) are ever placed in the DOM. As you scroll, cards outside
+   the window are dropped and new ones are created in their place.
+   This keeps the DOM node count constant whether the list has
+   70 items or 70,000. */
+
+let currentList = [];
+const GAP = 14;
+const CARD_EXTRA_HEIGHT = 56; // name label + padding, beyond the square thumb
+const ROW_BUFFER = 2; // extra rows rendered above/below the visible window
+
+function getColumns(){
+  const w = gridViewport.clientWidth;
+  if(w >= 1080) return 5;
+  if(w >= 820) return 4;
+  if(w >= 560) return 3;
+  return 2;
+}
+
+function renderGrid(list){
+  currentList = list;
+
+  const cols = getColumns();
+  const viewportWidth = gridViewport.clientWidth;
+  const colWidth = (viewportWidth - (cols - 1) * GAP) / cols;
+  const rowHeight = colWidth + CARD_EXTRA_HEIGHT + GAP;
+  const totalRows = Math.ceil(list.length / cols);
+
+  grid.style.height = Math.max(0, totalRows * rowHeight - GAP) + 'px';
+
+  const scrollTop = gridViewport.scrollTop;
+  const viewportHeight = gridViewport.clientHeight;
+  const startRow = Math.max(0, Math.floor(scrollTop / rowHeight) - ROW_BUFFER);
+  const endRow = Math.min(totalRows, Math.ceil((scrollTop + viewportHeight) / rowHeight) + ROW_BUFFER);
+  const startIdx = startRow * cols;
+  const endIdx = Math.min(list.length, endRow * cols);
+
+  grid.innerHTML = '';
+  for(let i = startIdx; i < endIdx; i++){
+    const it = list[i];
+    const idx = itemIndexMap.get(it.n);
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+    const t = thumbInner(it);
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.name = it.n;
+    card.style.top = (row * rowHeight) + 'px';
+    card.style.left = (col * (colWidth + GAP)) + 'px';
+    card.style.width = colWidth + 'px';
+    card.innerHTML = `
+      <span class="num">${String(idx + 1).padStart(2, '0')}</span>
+      <button class="search-btn" data-name="${it.n}" title="Search on Google" aria-label="Search ${it.n} on Google">🔍</button>
+      <div class="thumb ${t.loaded ? 'loaded' : ''}">${t.html}</div>
+      <div class="name">${it.n}</div>`;
+    grid.appendChild(card);
+  }
+}
+
+gridViewport.addEventListener('scroll', () => renderGrid(currentList));
+window.addEventListener('resize', () => renderGrid(currentList));
+
+function paintAllFor(item){
+  document.querySelectorAll(`.card[data-name="${CSS.escape(item.n)}"] .thumb`).forEach(el => {
+    const t = thumbInner(item);
+    el.innerHTML = t.html;
+    el.classList.add('loaded');
+  });
+  if(currentQuestionItem && currentQuestionItem.n === item.n){
+    paintQuizThumb(item);
+  }
+}
+
+searchBox.addEventListener('input', () => {
+  const q = searchBox.value.trim().toLowerCase();
+  const filtered = items.filter(it => it.n.toLowerCase().includes(q));
+  gridViewport.scrollTop = 0;
+  renderGrid(filtered);
+});
+
+const tabLearn = document.getElementById('tabLearn');
+const tabQuiz = document.getElementById('tabQuiz');
+const learnView = document.getElementById('learnView');
+const quizView = document.getElementById('quizView');
+
+tabLearn.addEventListener('click', () => switchTab('learn'));
+tabQuiz.addEventListener('click', () => switchTab('quiz'));
+
+function switchTab(which){
+  tabLearn.classList.toggle('active', which === 'learn');
+  tabQuiz.classList.toggle('active', which === 'quiz');
+  learnView.classList.toggle('active', which === 'learn');
+  quizView.classList.toggle('active', which === 'quiz');
+}
+
+const quizIntro = document.getElementById('quizIntro');
+const quizPlay = document.getElementById('quizPlay');
+const quizResult = document.getElementById('quizResult');
+const startQuizBtn = document.getElementById('startQuizBtn');
+const retryBtn = document.getElementById('retryBtn');
+const nextBtn = document.getElementById('nextBtn');
+const progressLabel = document.getElementById('progressLabel');
+const progressFill = document.getElementById('progressFill');
+const scorePill = document.getElementById('scorePill');
+const quizThumb = document.getElementById('quizThumb');
+const optionsWrap = document.getElementById('optionsWrap');
+const finalScore = document.getElementById('finalScore');
+const resultMsg = document.getElementById('resultMsg');
+
+let quizOrder = [];
+let qIndex = 0;
+let score = 0;
+let answered = false;
+let currentQuestionItem = null;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function startQuiz(){
+  quizOrder = shuffle(items);
+  qIndex = 0;
+  score = 0;
+  answered = false;
+  quizIntro.style.display = 'none';
+  quizResult.style.display = 'none';
+  quizPlay.style.display = 'block';
+  loadQuestion();
+}
+
+function paintQuizThumb(item){
+  const t = thumbInner(item);
+  quizThumb.innerHTML = t.html;
+  quizThumb.classList.toggle('loaded', t.loaded);
+}
+
+async function loadQuestion(){
+  answered = false;
+  nextBtn.classList.remove('show');
+  const correct = quizOrder[qIndex];
+  currentQuestionItem = correct;
+  paintQuizThumb(correct);
+  if(imgCache[correct.n] === undefined){ ensureImage(correct); }
+
+  const pool = items.filter(it => it.n !== correct.n);
+  const wrongs = shuffle(pool).slice(0, 3);
+  const options = shuffle([correct, ...wrongs]);
+
+  optionsWrap.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt.n;
+    btn.addEventListener('click', () => selectAnswer(btn, opt, correct));
+    optionsWrap.appendChild(btn);
+  });
+
+  progressLabel.textContent = `Question ${qIndex+1} / ${quizOrder.length}`;
+  progressFill.style.width = ((qIndex) / quizOrder.length * 100) + '%';
+  scorePill.textContent = `Score ${score}`;
+}
+
+function selectAnswer(btn, opt, correct){
+  if(answered) return;
+  answered = true;
+  const allBtns = optionsWrap.querySelectorAll('.opt');
+  allBtns.forEach(b => b.disabled = true);
+
+  if(opt.n === correct.n){
+    btn.classList.add('correct');
+    score++;
+  } else {
+    btn.classList.add('wrong');
+    allBtns.forEach(b => { if(b.textContent === correct.n) b.classList.add('correct'); });
+  }
+  scorePill.textContent = `Score ${score}`;
+  nextBtn.classList.add('show');
+}
+
+nextBtn.addEventListener('click', () => {
+  qIndex++;
+  if(qIndex >= quizOrder.length){
+    finishQuiz();
+  } else {
+    loadQuestion();
+  }
+});
+
+function finishQuiz(){
+  quizPlay.style.display = 'none';
+  quizResult.style.display = 'block';
+  progressFill.style.width = '100%';
+  finalScore.textContent = `${score} / ${quizOrder.length}`;
+  const pct = score / quizOrder.length;
+  resultMsg.textContent = pct === 1 ? `Perfect! You know your ${topicMeta.topicPlural.toLowerCase()} inside out.` :
+    pct >= 0.8 ? `Great job — you really know your ${topicMeta.topicPlural.toLowerCase()}.` :
+    pct >= 0.5 ? "Good effort! A bit more practice and you'll have them all." :
+    "Head back to Learn and give it another look.";
+}
+
+startQuizBtn.addEventListener('click', startQuiz);
+retryBtn.addEventListener('click', startQuiz);
+
+/* ---------------- Lightbox (click a photo to see it full size) ---------------- */
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightboxImg');
+const lightboxCaption = document.getElementById('lightboxCaption');
+const lightboxClose = document.getElementById('lightboxClose');
+const lightboxSearch = document.getElementById('lightboxSearch');
+
+/* Reverse-image-search the real photo when we have one, otherwise a plain text search */
+/* Search Google Images by the item's name plus the topic word (e.g. "Potato vegetable") */
+function googleSearchUrlFor(item){
+  return `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(item.n + ' ' + topicMeta.topic.toLowerCase())}`;
+}
+
+function openGoogleSearch(item){
+  window.open(googleSearchUrlFor(item), '_blank', 'noopener');
+}
+
+async function openLightbox(item, showCaption){
+  const small = imgCache[item.n];
+  if(!small) return; // nothing real to zoom into yet
+  lightboxImg.src = small;
+  lightboxImg.alt = item.n;
+  lightboxCaption.textContent = showCaption ? item.n : '';
+  lightboxSearch.classList.toggle('show', !!showCaption);
+  lightboxSearch.onclick = (e) => { e.stopPropagation(); openGoogleSearch(item); };
+  lightbox.classList.add('open');
+
+  if(hiResCache[item.n] === undefined){
+    const hi = await fetchThumb(item.w, 900);
+    hiResCache[item.n] = hi;
+    if(hi && lightbox.classList.contains('open') && lightboxImg.alt === item.n){
+      lightboxImg.src = hi;
+    }
+  } else if(hiResCache[item.n]){
+    lightboxImg.src = hiResCache[item.n];
+  }
+}
+
+function closeLightbox(){
+  lightbox.classList.remove('open');
+}
+
+lightbox.addEventListener('click', closeLightbox);
+lightboxClose.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox(); });
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeLightbox(); });
+
+grid.addEventListener('click', (e) => {
+  const searchBtn = e.target.closest('.search-btn');
+  if(searchBtn){
+    e.stopPropagation();
+    const item = items.find(it => it.n === searchBtn.dataset.name);
+    if(item) openGoogleSearch(item);
+    return;
+  }
+  const card = e.target.closest('.card');
+  if(!card) return;
+  const item = items.find(it => it.n === card.dataset.name);
+  if(item) openLightbox(item, true);
+});
+
+quizThumb.addEventListener('click', () => {
+  if(currentQuestionItem) openLightbox(currentQuestionItem, answered);
+});
+
+/* ---------------- Boot: load JSON, then render + preload ---------------- */
+async function init(){
+  try{
+    await loadItems();
+  }catch(e){
+    countNote.textContent = `Could not load ${DATA_FILE} — make sure it is in the same folder as this file.`;
+    return;
+  }
+  itemIndexMap = new Map(items.map((it, i) => [it.n, i]));
+  currentList = items;
+  applyTopicText();
+  countNote.textContent = `${items.length} items · photos loading from Wikipedia…`;
+  renderGrid(items);
+  preloadAll();
+}
+
+init();
+</script>
+</body>
+</html>
