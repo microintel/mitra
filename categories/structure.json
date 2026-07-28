@@ -1,0 +1,11 @@
+{
+  "topic": "name",
+  "topicPlural": "names",
+  "icon": "emoji",
+  "tagline": "line about topic",
+  "credit": "Made by Microintel",
+  "data": [
+    { "name": "Sunflower Seed", "url": "https://en.wikipedia.org/wiki/example", "icon": "🌻" },
+    { "name": "Pumpkin Seed", "url": "https://en.wikipedia.org/wiki/exame", "icon": "🎃" }
+  ]
+}
