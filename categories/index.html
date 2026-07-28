@@ -16,8 +16,7 @@
     line-height:1; padding:0.2em 0.4em; color:inherit; opacity:0.6; display:none;
   }
   .search-clear:hover{ opacity:1; }
-  .cat-thumb img.img-fallback{ object-fit:contain; padding:15%; opacity:0.5; }
-  .cat-thumb{ position:relative; }
+  .cat-thumb{ position:relative; display:flex; align-items:center; justify-content:center; font-size:3.5em; line-height:1; }
   .cat-serial{
     position:absolute; top:0.4em; left:0.4em;
     background:rgba(0,0,0,0.65); color:#fff; font-size:0.75em;
@@ -47,8 +46,8 @@
 /* ==================================================================
    categories.json shape:
    [
-     { "name": "Vegetables", "image": "url-or-data-uri", "location": "vegetables.json" },
-     { "name": "Fruits",     "image": "url-or-data-uri", "location": "fruits.json" },
+     { "name": "Vegetables", "emoji": "🥕", "location": "vegetables.json" },
+     { "name": "Fruits",     "emoji": "🍎", "location": "fruits.json" },
      ...
    ]
 
@@ -62,16 +61,6 @@ const searchBox = document.getElementById('searchBox');
 const searchClear = document.getElementById('searchClear');
 
 let allCategories = [];
-
-// Simple inline SVG placeholder used when a category image fails to load,
-// so a missing/broken image never shows a browser "broken image" icon.
-const FALLBACK_IMG =
-  'data:image/svg+xml;utf8,' + encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
-       <rect width="100%" height="100%" fill="#e5e5e5"/>
-       <text x="50%" y="50%" font-size="14" fill="#888" text-anchor="middle" dy=".3em">No image</text>
-     </svg>`
-  );
 
 async function loadCategories(){
   catNote.textContent = 'Loading categories…';
@@ -104,17 +93,9 @@ function renderCategories(categories){
     a.innerHTML = `
       <div class="cat-thumb">
         <span class="cat-serial">${serial}</span>
-        <img src="${cat.image}" alt="${cat.name}" loading="lazy">
+        <span class="cat-emoji" aria-hidden="true">${cat.emoji}</span>
       </div>
       <div class="cat-label">${cat.name}</div>`;
-    // Fall back to a placeholder image instead of a broken-image icon.
-    const img = a.querySelector('img');
-    img.addEventListener('error', () => {
-      if(img.src !== FALLBACK_IMG){
-        img.src = FALLBACK_IMG;
-        img.classList.add('img-fallback');
-      }
-    }, { once: true });
     catGrid.appendChild(a);
   });
 }
