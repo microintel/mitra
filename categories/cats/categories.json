@@ -15,6 +15,11 @@
     "emoji": "🥕"
   },
   {
+  "name": "Vegetables (part 2)",
+  "location": "cats/vegetables-part-2.json",
+  "emoji": "🥕"
+  },
+  {
     "name": "Kitchen Utensils",
     "location": "cats/kitchen-utensils.json",
     "emoji": "🍴"
