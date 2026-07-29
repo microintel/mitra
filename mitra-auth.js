@@ -31,10 +31,11 @@
   "use strict";
 
   var DB_NAME = "mitrami";
-  var DB_VERSION = 2;
+  var DB_VERSION = 3;
   var STORE_USERS = "users";
   var STORE_SESSION = "session";
   var STORE_SETTINGS = "settings";
+  var STORE_PROGRESS = "progress";
   var SESSION_ID = "current";
   var THEME_ID = "theme";
   var ACCENT_ID = "accent";
@@ -56,6 +57,7 @@
   var authChangeListeners = [];
   var themeChangeListeners = [];
   var accentChangeListeners = [];
+  var progressChangeListeners = [];
   var themeChannel = (typeof BroadcastChannel !== "undefined") ? new BroadcastChannel("mitrami-theme") : null;
   if (themeChannel) {
     themeChannel.onmessage = function (e) { notifyThemeChange(e.data); };
@@ -63,6 +65,10 @@
   var accentChannel = (typeof BroadcastChannel !== "undefined") ? new BroadcastChannel("mitrami-accent") : null;
   if (accentChannel) {
     accentChannel.onmessage = function (e) { notifyAccentChange(e.data); };
+  }
+  var progressChannel = (typeof BroadcastChannel !== "undefined") ? new BroadcastChannel("mitrami-progress") : null;
+  if (progressChannel) {
+    progressChannel.onmessage = function (e) { notifyProgressChange(e.data); };
   }
 
   function openDB() {
@@ -82,6 +88,9 @@
         }
         if (!db.objectStoreNames.contains(STORE_SETTINGS)) {
           db.createObjectStore(STORE_SETTINGS, { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains(STORE_PROGRESS)) {
+          db.createObjectStore(STORE_PROGRESS, { keyPath: "location" });
         }
       };
       req.onsuccess = function (e) { resolve(e.target.result); };
@@ -162,6 +171,12 @@
   function notifyAccentChange(accent) {
     accentChangeListeners.forEach(function (fn) {
       try { fn(accent); } catch (e) { /* listener errors shouldn't break accent switching */ }
+    });
+  }
+
+  function notifyProgressChange(detail) {
+    progressChangeListeners.forEach(function (fn) {
+      try { fn(detail); } catch (e) { /* listener errors shouldn't break progress tracking */ }
     });
   }
 
@@ -510,6 +525,74 @@
       }
 
       MitraAuth.onThemeChange(function (theme) { apply(theme); });
+    },
+
+    /**
+     * Category progress ("mark as complete"), shared across categories.html,
+     * its index/listing page, and mitra-dashboard.html via the same
+     * "mitrami" IndexedDB database (and BroadcastChannel for open tabs).
+     * `location` is the category's data-file path (e.g. "cats/fruits.json"),
+     * which is already used as its unique id elsewhere in the app.
+     */
+
+    /** Resolves to true/false for whether this category is marked complete. */
+    isCategoryComplete: function (location) {
+      return openDB().then(function (db) {
+        return reqToPromise(store(db, STORE_PROGRESS, "readonly").get(location)).then(function (rec) {
+          return !!(rec && rec.completed);
+        });
+      });
+    },
+
+    /** Resolves to an array of every stored progress record (completed and not). */
+    getAllProgress: function () {
+      return openDB().then(function (db) {
+        return reqToPromise(store(db, STORE_PROGRESS, "readonly").getAll());
+      });
+    },
+
+    /** Resolves to just the records currently marked complete. */
+    getCompletedCategories: function () {
+      return MitraAuth.getAllProgress().then(function (all) {
+        return (all || []).filter(function (r) { return r && r.completed; });
+      });
+    },
+
+    /**
+     * Mark a category complete/incomplete. `meta` is optional extra info
+     * to remember alongside it, e.g. { name, icon, total }.
+     */
+    setCategoryComplete: function (location, completed, meta) {
+      if (!location) return Promise.reject(new Error("A category location is required."));
+      meta = meta || {};
+      return openDB().then(function (db) {
+        var rec = Object.assign({}, meta, {
+          location: location,
+          completed: !!completed,
+          completedAt: completed ? new Date().toISOString() : null
+        });
+        return reqToPromise(store(db, STORE_PROGRESS, "readwrite").put(rec)).then(function () {
+          notifyProgressChange(rec);
+          if (progressChannel) progressChannel.postMessage(rec);
+          return rec;
+        });
+      });
+    },
+
+    /** Toggle convenience: flips whatever the current state is and returns the new record. */
+    toggleCategoryComplete: function (location, meta) {
+      return MitraAuth.isCategoryComplete(location).then(function (isComplete) {
+        return MitraAuth.setCategoryComplete(location, !isComplete, meta);
+      });
+    },
+
+    /** Subscribe to progress changes made here or in another open tab. Returns an unsubscribe fn. */
+    onProgressChange: function (fn) {
+      progressChangeListeners.push(fn);
+      return function unsubscribe() {
+        var i = progressChangeListeners.indexOf(fn);
+        if (i > -1) progressChangeListeners.splice(i, 1);
+      };
     }
   };
 

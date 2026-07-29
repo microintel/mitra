@@ -845,6 +845,55 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom));}
     '</div>';
   }).join('');
 
+  /* ---------- REAL CATEGORY PROGRESS ----------
+     Everything above renders placeholder numbers instantly (so the reveal
+     animation always has something to count up to). Once the actual
+     category list and "mark as complete" records are read from the
+     shared "mitrami" IndexedDB, this quietly overwrites those numbers —
+     re-animating them if they're already on screen, or just updating the
+     data-count/data-target so the correct value is used whenever the
+     card next scrolls into view. */
+  function updateCount(el, value){
+    if(!el) return;
+    el.setAttribute('data-count', value);
+    if(el.classList.contains('in-view')) animateCount(el);
+  }
+  function updateFill(el, pct){
+    if(!el) return;
+    el.setAttribute('data-target', pct);
+    var parent = el.closest('.reveal');
+    if(parent && parent.classList.contains('in-view')) el.style.width = pct + '%';
+  }
+  function loadRealCategoryStats(){
+    if(typeof MitraAuth === 'undefined') return;
+    fetch(CATS_URL + 'cats/categories.json').then(function(res){
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function(list){
+      var total = Array.isArray(list) ? list.length : 0;
+      var validLocations = new Set((list || []).map(function(c){ return c.location; }));
+      return MitraAuth.getCompletedCategories().then(function(completedRecords){
+        var completed = completedRecords.filter(function(r){ return validLocations.has(r.location); }).length;
+        var avgProgress = total ? Math.round((completed / total) * 100) : 0;
+
+        var csNums = document.querySelectorAll('#catSnapshot .cs-num');
+        updateCount(csNums[0], total);
+        updateCount(csNums[1], completed);
+        updateCount(csNums[2], Math.max(0, total - completed));
+        updateFill(document.querySelector('#catSnapshot .progress-fill'), avgProgress);
+        var csPctText = document.querySelector('#catSnapshot .progress-row span');
+        if(csPctText) csPctText.textContent = avgProgress + '% average progress';
+
+        var gridStatNums = document.querySelectorAll('#statsGrid .num');
+        updateCount(gridStatNums[1], completed); // "Categories Done" tile
+      });
+    }).catch(function(){ /* keep the placeholder numbers if this fails */ });
+  }
+  loadRealCategoryStats();
+  if(typeof MitraAuth !== 'undefined'){
+    MitraAuth.onProgressChange(loadRealCategoryStats);
+  }
+
   var skills = [
     {name:'Speaking', pct:40, color:'var(--teal)'},
     {name:'Reading', pct:58, color:'var(--coral)'},
