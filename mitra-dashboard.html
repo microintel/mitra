@@ -870,10 +870,12 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom));}
       if(!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
     }).then(function(list){
-      var total = Array.isArray(list) ? list.length : 0;
-      var validLocations = new Set((list || []).map(function(c){ return c.location; }));
+      list = Array.isArray(list) ? list : [];
+      var total = list.length;
+      var validLocations = new Set(list.map(function(c){ return c.location; }));
       return MitraAuth.getCompletedCategories().then(function(completedRecords){
-        var completed = completedRecords.filter(function(r){ return validLocations.has(r.location); }).length;
+        var completedSet = new Set(completedRecords.filter(function(r){ return validLocations.has(r.location); }).map(function(r){ return r.location; }));
+        var completed = completedSet.size;
         var avgProgress = total ? Math.round((completed / total) * 100) : 0;
 
         var csNums = document.querySelectorAll('#catSnapshot .cs-num');
@@ -886,6 +888,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom));}
 
         var gridStatNums = document.querySelectorAll('#statsGrid .num');
         updateCount(gridStatNums[1], completed); // "Categories Done" tile
+
+        renderContinueLearning(list, completedSet);
       });
     }).catch(function(){ /* keep the placeholder numbers if this fails */ });
   }
@@ -907,23 +911,34 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom));}
       '<span class="pct">'+s.pct+'%</span></div>';
   }).join('');
 
-  /* ---------- CONTINUE LEARNING ---------- */
-  var recent = [
-    {name:'Grammar', icon:'📘', progress:64},
-    {name:'Speaking', icon:'🗣️', progress:40},
-    {name:'Travel', icon:'✈️', progress:22},
-    {name:'Food', icon:'🍜', progress:64},
-    {name:'Technology', icon:'💻', progress:53}
-  ];
-  document.getElementById('continueRow').innerHTML = recent.map(function(r,i){
-    var col = catGrad(i);
-    return '<a class="card card-hover cl-card" href="'+CATS_URL+'#'+slug(r.name)+'">'+
-      '<div class="cl-thumb" style="background:'+col[1]+';" aria-hidden="true">'+r.icon+'</div>'+
-      '<div class="cl-name">'+r.name+'</div>'+
-      '<div class="progress-track"><div class="progress-fill" data-target="'+r.progress+'"></div></div>'+
-      '<div class="progress-row"><span>'+r.progress+'%</span><span>Continue →</span></div>'+
-    '</a>';
-  }).join('');
+  /* ---------- CONTINUE LEARNING (real categories from cats/categories.json) ----------
+     Prefers categories not yet marked complete (so there's always something to
+     "continue"); if every category is done, it shows a handful to "review"
+     instead. Progress is binary per category (0% / 100%) since that's all
+     "mark as complete" tracks today. */
+  function renderContinueLearning(list, completedSet){
+    var notDone = list.filter(function(c){ return !completedSet.has(c.location); });
+    var pool = notDone.length ? notDone : list;
+    var picked = pool.slice(0, 8);
+    var continueRow = document.getElementById('continueRow');
+    if(!picked.length){
+      continueRow.innerHTML = '';
+      return;
+    }
+    continueRow.innerHTML = picked.map(function(c, i){
+      var col = catGrad(i);
+      var done = completedSet.has(c.location);
+      var progress = done ? 100 : 0;
+      var href = CATS_URL + 'categories.html?data=' + encodeURIComponent(c.location);
+      return '<a class="card card-hover cl-card reveal" href="'+href+'">'+
+        '<div class="cl-thumb" style="background:'+col[1]+';" aria-hidden="true">'+(c.emoji||'📚')+'</div>'+
+        '<div class="cl-name">'+c.name+'</div>'+
+        '<div class="progress-track"><div class="progress-fill" data-target="'+progress+'"></div></div>'+
+        '<div class="progress-row"><span>'+progress+'%</span><span>'+(done ? 'Review →' : 'Continue →')+'</span></div>'+
+      '</a>';
+    }).join('');
+    document.querySelectorAll('#continueRow .reveal').forEach(function(el){ io.observe(el); });
+  }
 
   /* ---------- ACHIEVEMENTS ---------- */
   var badges = [
