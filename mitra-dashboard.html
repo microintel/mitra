@@ -678,10 +678,8 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom));}
   };
 
   /* ---------- THEME (persisted in the shared "mitrami" IndexedDB, synced across all pages/tabs) ---------- */
-  if(typeof MitraAuth !== 'undefined'){
-    MitraAuth.initThemeToggle();
-    MitraAuth.initAccentPicker();
-  }
+  MitraAuth.initThemeToggle();
+  MitraAuth.initAccentPicker();
 
   /* ---------- AUTH GUARD + PERSONALIZATION ---------- */
   /* Redirects to login.html if nobody is signed in. Otherwise swaps the
@@ -905,17 +903,6 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom));}
     // the real stats every time this tab becomes visible again to cover that gap.
     document.addEventListener('visibilitychange', function(){
       if(document.visibilityState === 'visible'){
-        loadRealCategoryStats();
-      }
-    });
-    // Catches the specific case of clicking a category, marking it complete,
-    // then hitting the browser's back button: browsers often restore the
-    // dashboard straight from the back/forward cache (bfcache) instead of
-    // re-running scripts, so visibilitychange can be missed entirely. `pageshow`
-    // fires whenever a page is displayed, including bfcache restores — check
-    // event.persisted to catch that "returned to this page" case reliably.
-    window.addEventListener('pageshow', function(e){
-      if(e.persisted){
         loadRealCategoryStats();
       }
     });
