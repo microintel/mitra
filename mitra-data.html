@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Backup &amp; Restore — Mitra</title>
+<meta name="description" content="Export everything Mitra has saved on this device, or restore it from a backup file.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+:root{
+  --font-display:'Fraunces',serif;
+  --font-body:'Inter',sans-serif;
+  --bg:#F7F8F1; --bg-soft:#EDF0E2; --surface:#FFFFFF;
+  --surface-glass:rgba(255,255,255,.68); --surface-glass-border:rgba(18,28,20,.08);
+  --ink:#151F19; --ink-soft:#4C594F; --muted:#818C82; --line:rgba(18,28,20,.10);
+  --teal:#149164; --teal-dark:#0D7350; --teal-tint:#E1F3E9;
+  --coral:#F2792E; --coral-tint:#FDECDD;
+  --gold:#E7A431; --gold-tint:#FBF0DA;
+  --on-brand:#FFFFFF;
+  --grad-brand: linear-gradient(135deg,#0D7350 0%, #149164 55%, #E7A431 130%);
+  --shadow-sm: 0 1px 2px rgba(18,28,20,.06), 0 1px 1px rgba(18,28,20,.04);
+  --shadow-md: 0 8px 24px -8px rgba(18,28,20,.16);
+  --shadow-lg: 0 24px 48px -12px rgba(18,28,20,.22);
+  --r-sm:12px; --r-md:18px; --r-lg:24px; --r-xl:28px;
+}
+[data-theme="dark"]{
+  --bg:#0B120D; --bg-soft:#111A14; --surface:#16211A;
+  --surface-glass:rgba(22,33,26,.62); --surface-glass-border:rgba(230,240,232,.08);
+  --ink:#E7F0E9; --ink-soft:#B4C4B8; --muted:#7C8B80; --line:rgba(230,240,232,.10);
+  --teal:#3FCB93; --teal-dark:#2AA877; --teal-tint:rgba(63,203,147,.16);
+  --coral:#FF9B54; --coral-tint:rgba(255,155,84,.14);
+  --gold:#F6C567; --gold-tint:rgba(246,197,103,.14);
+  --grad-brand: linear-gradient(135deg,#2AA877 0%, #3FCB93 55%, #F6C567 130%);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
+  --shadow-md: 0 8px 24px -8px rgba(0,0,0,.5);
+  --shadow-lg: 0 24px 48px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{overflow-x:hidden;}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); -webkit-font-smoothing:antialiased; transition:background .3s ease, color .3s ease;}
+h1,h2,h3{font-family:var(--font-display); margin:0; letter-spacing:-.01em;}
+p{margin:0;}
+a{color:inherit;}
+button{font-family:var(--font-body); cursor:pointer;}
+:focus-visible{outline:2.5px solid var(--coral); outline-offset:3px; border-radius:6px;}
+
+.topnav{position:sticky; top:0; z-index:50; height:72px; display:flex; align-items:center; background:var(--surface-glass); backdrop-filter:blur(16px); border-bottom:1px solid var(--surface-glass-border);}
+.topnav-inner{width:100%; max-width:760px; margin:0 auto; padding:0 20px; display:flex; align-items:center; justify-content:space-between; gap:12px;}
+.back-link{display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:.88rem; color:var(--ink-soft);}
+.back-link:hover{color:var(--teal);}
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:600;}
+.brand-mark{width:30px; height:30px; border-radius:9px; background:var(--grad-brand); display:flex; align-items:center; justify-content:center; color:#fff; font-family:var(--font-body); font-weight:800; font-size:.85rem;}
+#themeToggle{width:38px; height:38px; border-radius:999px; border:1px solid var(--line); background:var(--surface); display:flex; align-items:center; justify-content:center; color:var(--ink-soft);}
+#themeToggle:hover{color:var(--teal); border-color:var(--teal);}
+
+main{max-width:760px; margin:0 auto; padding:32px 20px 80px;}
+.page-head{margin-bottom:28px;}
+.eyebrow{font-size:.75rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--teal);}
+.page-head h1{font-size:clamp(1.5rem,3vw,2.1rem); font-weight:600; margin-top:8px;}
+.page-head p{color:var(--muted); margin-top:8px; max-width:52ch; line-height:1.55;}
+
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); box-shadow:var(--shadow-sm); padding:24px; margin-bottom:20px;}
+@media(min-width:640px){.card{padding:28px;}}
+.card-head{display:flex; align-items:flex-start; gap:14px; margin-bottom:16px;}
+.card-icon{width:42px; height:42px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:1.05rem; color:var(--teal-dark); background:var(--teal-tint);}
+.card-icon.coral{color:var(--coral); background:var(--coral-tint);}
+.card h2{font-size:1.15rem; font-weight:600;}
+.card .sub{color:var(--muted); font-size:.88rem; margin-top:4px; line-height:1.5;}
+
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:700; font-size:.92rem; padding:13px 22px; border-radius:999px; border:1px solid transparent; transition:transform .18s ease, box-shadow .18s ease, background .18s ease, opacity .18s ease; width:100%;}
+.btn:active{transform:scale(.98);}
+.btn:disabled{opacity:.5; cursor:not-allowed; transform:none !important;}
+.btn-primary{background:var(--grad-brand); color:var(--on-brand); box-shadow:var(--shadow-md);}
+.btn-primary:hover:not(:disabled){transform:translateY(-2px); box-shadow:var(--shadow-lg);}
+.btn-ghost{background:var(--bg-soft); color:var(--ink); border-color:var(--line);}
+.btn-ghost:hover:not(:disabled){border-color:var(--teal); color:var(--teal-dark);}
+
+.file-drop{border:1.5px dashed var(--line); border-radius:var(--r-md); padding:20px; text-align:center; margin-bottom:14px; transition:border-color .18s ease, background .18s ease; cursor:pointer;}
+.file-drop:hover, .file-drop.drag{border-color:var(--teal); background:var(--teal-tint);}
+.file-drop input{display:none;}
+.file-drop .fname{font-weight:700; font-size:.9rem; margin-top:6px; word-break:break-all;}
+.file-drop .hint{color:var(--muted); font-size:.82rem; margin-top:4px;}
+
+.opt-row{display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border-radius:var(--r-sm); border:1px solid var(--line); margin-bottom:8px; cursor:pointer;}
+.opt-row:hover{border-color:var(--teal);}
+.opt-row input{margin-top:3px; accent-color:var(--teal);}
+.opt-row .t{font-weight:700; font-size:.88rem;}
+.opt-row .d{color:var(--muted); font-size:.8rem; margin-top:2px;}
+
+.status{border-radius:var(--r-sm); padding:12px 14px; font-size:.86rem; font-weight:600; margin-top:14px; display:none; gap:8px; align-items:flex-start; line-height:1.5;}
+.status.show{display:flex;}
+.status.ok{background:var(--teal-tint); color:var(--teal-dark);}
+.status.err{background:var(--coral-tint); color:#B5451A;}
+[data-theme="dark"] .status.err{color:var(--coral);}
+.status i{margin-top:1px;}
+
+.note{display:flex; gap:10px; padding:14px 16px; border-radius:var(--r-sm); background:var(--gold-tint); font-size:.82rem; line-height:1.55; color:var(--ink-soft); border:1px solid rgba(231,164,49,.25);}
+.note i{color:var(--gold); font-size:1rem; flex-shrink:0; margin-top:1px;}
+
+.summary-list{list-style:none; margin:12px 0 0; padding:0; font-size:.85rem;}
+.summary-list li{display:flex; justify-content:space-between; padding:6px 0; border-top:1px solid var(--line);}
+.summary-list li span:last-child{font-weight:700; color:var(--teal-dark);}
+</style>
+</head>
+<body>
+<div class="topnav">
+  <div class="topnav-inner">
+    <a href="mitra-dashboard.html" class="back-link"><i class="bi bi-arrow-left"></i> Dashboard</a>
+    <div class="brand"><span class="brand-mark">M</span></div>
+    <button id="themeToggle" aria-pressed="false" aria-label="Switch to dark theme">
+      <i class="bi bi-sun-fill" id="themeIconSun"></i>
+      <i class="bi bi-moon-stars-fill" id="themeIconMoon" style="display:none;"></i>
+    </button>
+  </div>
+</div>
+
+<main>
+  <div class="page-head">
+    <div class="eyebrow">Backup &amp; Restore</div>
+    <h1>Your data, in a file you control</h1>
+    <p>Everything Mitra remembers — your account, progress, and settings — lives only in this browser, in a local database called IndexedDB. Nothing is sent anywhere. Export it to a file to keep it safe, move it to another browser, or restore it later if it's ever cleared.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon"><i class="bi bi-box-arrow-down"></i></div>
+      <div>
+        <h2>Export everything</h2>
+        <div class="sub">Downloads a single JSON file with your account, saved progress, and preferences.</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="exportBtn"><i class="bi bi-download"></i> Download backup file</button>
+    <div class="status" id="exportStatus"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-icon coral"><i class="bi bi-box-arrow-in-up"></i></div>
+      <div>
+        <h2>Restore from a backup</h2>
+        <div class="sub">Choose a file you exported from Mitra before, then bring it back into this browser.</div>
+      </div>
+    </div>
+
+    <label class="file-drop" id="fileDrop" for="fileInput">
+      <input type="file" id="fileInput" accept="application/json,.json">
+      <i class="bi bi-file-earmark-arrow-up" style="font-size:1.4rem; color:var(--muted);"></i>
+      <div class="fname" id="fileName">Tap to choose a backup file</div>
+      <div class="hint">.json file exported from this page</div>
+    </label>
+
+    <label class="opt-row">
+      <input type="radio" name="mode" value="merge" checked>
+      <span><span class="t">Merge with what's already here</span><span class="d">Adds and updates records from the file; anything already saved that isn't in the file stays untouched.</span></span>
+    </label>
+    <label class="opt-row">
+      <input type="radio" name="mode" value="replace">
+      <span><span class="t">Replace everything</span><span class="d">Clears existing accounts, progress and settings first, then loads only what's in the file.</span></span>
+    </label>
+
+    <button class="btn btn-ghost" id="importBtn" disabled style="margin-top:6px;"><i class="bi bi-upload"></i> Restore this file</button>
+    <div class="status" id="importStatus"></div>
+  </div>
+
+  <div class="note">
+    <i class="bi bi-shield-lock-fill"></i>
+    <div>The backup file includes your account record (with a salted, hashed password — never the password itself), so treat it like any other personal file: don't share it, and store it somewhere you trust.</div>
+  </div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Theme (kept in sync with the rest of Mitra via mitrami's own settings store) ---------- */
+  var DB_NAME = "mitrami";
+  var DB_VERSION = 3;
+  var STORES = ["users", "session", "settings", "progress"];
+  var KEY_PATHS = { users: "email", session: "id", settings: "id", progress: "location" };
+
+  function openDB(){
+    return new Promise(function(resolve, reject){
+      if(!window.indexedDB){
+        reject(new Error("This browser doesn't support IndexedDB, so there's nothing here to back up yet."));
+        return;
+      }
+      var req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = function(e){
+        var db = e.target.result;
+        STORES.forEach(function(name){
+          if(!db.objectStoreNames.contains(name)){
+            db.createObjectStore(name, { keyPath: KEY_PATHS[name] });
+          }
+        });
+      };
+      req.onsuccess = function(e){ resolve(e.target.result); };
+      req.onerror = function(e){ reject(e.target.error || new Error("Couldn't open the local database.")); };
+    });
+  }
+
+  function reqToPromise(req){
+    return new Promise(function(resolve, reject){
+      req.onsuccess = function(){ resolve(req.result); };
+      req.onerror = function(){ reject(req.error); };
+    });
+  }
+
+  function getAll(db, storeName){
+    return reqToPromise(db.transaction(storeName, "readonly").objectStore(storeName).getAll());
+  }
+
+  /* Applies a saved theme immediately if present, otherwise falls back to OS preference — same behavior as mitra-auth.js's initThemeToggle, reimplemented here so this page works even if mitra-auth.js isn't loaded alongside it. */
+  var toggleBtn = document.getElementById('themeToggle');
+  var sunIcon = document.getElementById('themeIconSun');
+  var moonIcon = document.getElementById('themeIconMoon');
+  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  function applyTheme(theme){
+    document.body.setAttribute('data-theme', theme);
+    var dark = theme === 'dark';
+    sunIcon.style.display = dark ? 'none' : 'block';
+    moonIcon.style.display = dark ? 'block' : 'none';
+    toggleBtn.setAttribute('aria-pressed', String(dark));
+    toggleBtn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+
+  openDB().then(function(db){
+    return reqToPromise(db.transaction('settings', 'readonly').objectStore('settings').get('theme'));
+  }).then(function(rec){
+    applyTheme((rec && rec.value) || (prefersDark ? 'dark' : 'light'));
+  }).catch(function(){
+    applyTheme(prefersDark ? 'dark' : 'light');
+  });
+
+  toggleBtn.addEventListener('click', function(){
+    var next = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    openDB().then(function(db){
+      return reqToPromise(db.transaction('settings', 'readwrite').objectStore('settings').put({ id: 'theme', value: next }));
+    }).catch(function(){ /* non-critical if this can't save */ });
+  });
+
+  /* ---------- Status helpers ---------- */
+  function showStatus(el, kind, html){
+    el.className = 'status show ' + kind;
+    el.innerHTML = '<i class="bi ' + (kind === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill') + '"></i><span>' + html + '</span>';
+  }
+
+  /* ---------- Export ---------- */
+  var exportBtn = document.getElementById('exportBtn');
+  var exportStatus = document.getElementById('exportStatus');
+
+  exportBtn.addEventListener('click', function(){
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Gathering your data…';
+
+    openDB().then(function(db){
+      return Promise.all(STORES.map(function(name){ return getAll(db, name); }));
+    }).then(function(results){
+      var payload = {
+        app: "mitra",
+        dbName: DB_NAME,
+        dbVersion: DB_VERSION,
+        exportedAt: new Date().toISOString(),
+        stores: {}
+      };
+      STORES.forEach(function(name, i){ payload.stores[name] = results[i]; });
+
+      var counts = STORES.map(function(name){ return name + ': ' + payload.stores[name].length; }).join(' · ');
+
+      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      var stamp = payload.exportedAt.slice(0,10);
+      a.href = url;
+      a.download = 'mitra-backup-' + stamp + '.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+
+      showStatus(exportStatus, 'ok', 'Downloaded. Records saved — ' + counts + '.');
+    }).catch(function(err){
+      showStatus(exportStatus, 'err', (err && err.message) || 'Something went wrong while exporting.');
+    }).finally(function(){
+      exportBtn.disabled = false;
+      exportBtn.innerHTML = '<i class="bi bi-download"></i> Download backup file';
+    });
+  });
+
+  /* ---------- Import ---------- */
+  var fileInput = document.getElementById('fileInput');
+  var fileDrop = document.getElementById('fileDrop');
+  var fileName = document.getElementById('fileName');
+  var importBtn = document.getElementById('importBtn');
+  var importStatus = document.getElementById('importStatus');
+  var selectedFile = null;
+
+  fileInput.addEventListener('change', function(){
+    selectedFile = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+    fileName.textContent = selectedFile ? selectedFile.name : 'Tap to choose a backup file';
+    importBtn.disabled = !selectedFile;
+    importStatus.className = 'status';
+  });
+
+  ['dragover','dragenter'].forEach(function(ev){
+    fileDrop.addEventListener(ev, function(e){ e.preventDefault(); fileDrop.classList.add('drag'); });
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    fileDrop.addEventListener(ev, function(e){ e.preventDefault(); fileDrop.classList.remove('drag'); });
+  });
+  fileDrop.addEventListener('drop', function(e){
+    var f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if(f){ fileInput.files = e.dataTransfer.files; fileInput.dispatchEvent(new Event('change')); }
+  });
+
+  function readFileAsText(file){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(){ resolve(reader.result); };
+      reader.onerror = function(){ reject(new Error('Could not read that file.')); };
+      reader.readAsText(file);
+    });
+  }
+
+  importBtn.addEventListener('click', function(){
+    if(!selectedFile) return;
+    var mode = document.querySelector('input[name="mode"]:checked').value;
+
+    importBtn.disabled = true;
+    importBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Restoring…';
+
+    readFileAsText(selectedFile).then(function(text){
+      var data;
+      try{ data = JSON.parse(text); }
+      catch(e){ throw new Error('That file isn\'t valid JSON — it may be damaged or not a Mitra backup.'); }
+
+      if(!data || typeof data !== 'object' || !data.stores || typeof data.stores !== 'object'){
+        throw new Error('That doesn\'t look like a Mitra backup file (missing the expected data).');
+      }
+
+      var incomingStoreNames = Object.keys(data.stores).filter(function(name){
+        return STORES.indexOf(name) !== -1 && Array.isArray(data.stores[name]);
+      });
+
+      if(!incomingStoreNames.length){
+        throw new Error('That file doesn\'t contain any recognizable Mitra data to restore.');
+      }
+
+      return openDB().then(function(db){
+        return new Promise(function(resolve, reject){
+          var tx = db.transaction(incomingStoreNames, 'readwrite');
+          var counts = {};
+          tx.oncomplete = function(){ resolve(counts); };
+          tx.onerror = function(){ reject(tx.error || new Error('The restore was interrupted partway through.')); };
+          tx.onabort = function(){ reject(tx.error || new Error('The restore was interrupted partway through.')); };
+
+          incomingStoreNames.forEach(function(name){
+            var os = tx.objectStore(name);
+            var records = data.stores[name];
+            counts[name] = records.length;
+            if(mode === 'replace') os.clear();
+            records.forEach(function(rec){
+              if(rec && typeof rec === 'object' && KEY_PATHS[name] in rec){
+                os.put(rec);
+              }
+            });
+          });
+        });
+      });
+    }).then(function(counts){
+      var lines = Object.keys(counts).map(function(name){
+        return '<li><span>' + name + '</span><span>' + counts[name] + '</span></li>';
+      }).join('');
+      showStatus(importStatus, 'ok',
+        (mode === 'replace' ? 'Replaced local data. ' : 'Merged into local data. ') +
+        'Refresh the dashboard to see it.<ul class="summary-list">' + lines + '</ul>');
+    }).catch(function(err){
+      showStatus(importStatus, 'err', (err && err.message) || 'Something went wrong while restoring.');
+    }).finally(function(){
+      importBtn.disabled = !selectedFile;
+      importBtn.innerHTML = '<i class="bi bi-upload"></i> Restore this file';
+    });
+  });
+})();
+</script>
+</body>
+</html>
