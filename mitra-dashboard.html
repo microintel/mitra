@@ -896,6 +896,16 @@ body{padding-bottom:calc(64px + env(safe-area-inset-bottom));}
   loadRealCategoryStats();
   if(typeof MitraAuth !== 'undefined'){
     MitraAuth.onProgressChange(loadRealCategoryStats);
+    // Fallback for the same reason index.html has one: cross-tab/cross-page
+    // "mark as complete" signals aren't always reliable (e.g. IndexedDB writes
+    // don't fire a native `storage` event the way localStorage does), so this
+    // page can be left showing stale numbers until a manual refresh. Re-pull
+    // the real stats every time this tab becomes visible again to cover that gap.
+    document.addEventListener('visibilitychange', function(){
+      if(document.visibilityState === 'visible'){
+        loadRealCategoryStats();
+      }
+    });
   }
 
   var skills = [
