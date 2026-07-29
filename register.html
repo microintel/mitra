@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Create your account — Mitra</title>
+<meta name="description" content="Create a free Mitra account and start learning English today.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+:root{
+  --font-display:'Fraunces',serif;
+  --font-body:'Inter',sans-serif;
+  --bg:#F7F8F1; --bg-soft:#EDF0E2; --surface:#FFFFFF;
+  --surface-glass:rgba(255,255,255,.68); --surface-glass-border:rgba(18,28,20,.08);
+  --ink:#151F19; --ink-soft:#4C594F; --muted:#818C82; --line:rgba(18,28,20,.10);
+  --teal:#149164; --teal-dark:#0D7350; --teal-tint:#E1F3E9;
+  --coral:#F2792E; --coral-tint:#FDECDD;
+  --gold:#E7A431; --gold-tint:#FBF0DA;
+  --on-brand:#FFFFFF;
+  --danger:#C23B3B; --danger-tint:#FBEAE8;
+  --grad-hero: radial-gradient(120% 140% at 100% 0%, var(--teal-tint) 0%, var(--bg) 45%, var(--bg) 100%);
+  --grad-brand: linear-gradient(135deg,#0D7350 0%, #149164 55%, #E7A431 130%);
+  --shadow-sm: 0 1px 2px rgba(18,28,20,.06), 0 1px 1px rgba(18,28,20,.04);
+  --shadow-md: 0 8px 24px -8px rgba(18,28,20,.16);
+  --shadow-lg: 0 24px 48px -12px rgba(18,28,20,.22);
+  --r-sm:12px; --r-md:18px; --r-lg:24px; --r-xl:28px;
+}
+[data-theme="dark"]{
+  --bg:#0B120D; --bg-soft:#111A14; --surface:#16211A;
+  --surface-glass:rgba(22,33,26,.62); --surface-glass-border:rgba(230,240,232,.08);
+  --ink:#E7F0E9; --ink-soft:#B4C4B8; --muted:#7C8B80; --line:rgba(230,240,232,.10);
+  --teal:#3FCB93; --teal-dark:#2AA877; --teal-tint:rgba(63,203,147,.16);
+  --coral:#FF9B54; --coral-tint:rgba(255,155,84,.14);
+  --gold:#F6C567; --gold-tint:rgba(246,197,103,.14);
+  --on-brand:#FFFFFF;
+  --danger:#FF7A73; --danger-tint:rgba(255,122,115,.14);
+  --grad-hero: var(--bg);
+  --grad-brand: linear-gradient(135deg,#2AA877 0%, #3FCB93 55%, #F6C567 130%);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
+  --shadow-md: 0 8px 24px -8px rgba(0,0,0,.5);
+  --shadow-lg: 0 24px 48px -12px rgba(0,0,0,.6);
+}
+/* Accent themes: pick the primary color for a specific psychological
+   effect. Coral/gold stay fixed since they carry a fixed UI meaning. */
+[data-accent="ocean"]{ --teal:#1477A6; --teal-dark:#0F5F87; --teal-tint:#E2F1F8; --grad-brand: linear-gradient(135deg,#0F5F87 0%, #1477A6 55%, #E7A431 130%); }
+[data-accent="ocean"][data-theme="dark"]{ --teal:#4FB8E0; --teal-dark:#2E9BC4; --teal-tint:rgba(79,184,224,.16); --grad-brand: linear-gradient(135deg,#2E9BC4 0%, #4FB8E0 55%, #F6C567 130%); }
+[data-accent="plum"]{ --teal:#8B4FBF; --teal-dark:#723FA0; --teal-tint:#F2EAFA; --grad-brand: linear-gradient(135deg,#723FA0 0%, #8B4FBF 55%, #E7A431 130%); }
+[data-accent="plum"][data-theme="dark"]{ --teal:#B98CF0; --teal-dark:#9E6BDE; --teal-tint:rgba(185,140,240,.16); --grad-brand: linear-gradient(135deg,#9E6BDE 0%, #B98CF0 55%, #F6C567 130%); }
+[data-accent="terracotta"]{ --teal:#C1592D; --teal-dark:#9E4522; --teal-tint:#FBEBE1; --grad-brand: linear-gradient(135deg,#9E4522 0%, #C1592D 55%, #E7A431 130%); }
+[data-accent="terracotta"][data-theme="dark"]{ --teal:#E88656; --teal-dark:#D06B3B; --teal-tint:rgba(232,134,86,.16); --grad-brand: linear-gradient(135deg,#D06B3B 0%, #E88656 55%, #F6C567 130%); }
+[data-accent="berry"]{ --teal:#B0295A; --teal-dark:#8E1D47; --teal-tint:#FBE7EF; --grad-brand: linear-gradient(135deg,#8E1D47 0%, #B0295A 55%, #E7A431 130%); }
+[data-accent="berry"][data-theme="dark"]{ --teal:#F0679A; --teal-dark:#DB4880; --teal-tint:rgba(240,103,154,.16); --grad-brand: linear-gradient(135deg,#DB4880 0%, #F0679A 55%, #F6C567 130%); }
+[data-accent="slate"]{ --teal:#445048; --teal-dark:#333D37; --teal-tint:#E9ECE9; --grad-brand: linear-gradient(135deg,#333D37 0%, #445048 55%, #E7A431 130%); }
+[data-accent="slate"][data-theme="dark"]{ --teal:#9DAFA3; --teal-dark:#7E9188; --teal-tint:rgba(157,175,163,.16); --grad-brand: linear-gradient(135deg,#7E9188 0%, #9DAFA3 55%, #F6C567 130%); }
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{overflow-x:hidden; width:100%; min-height:100%;}
+body{
+  margin:0; min-height:100vh; background:var(--grad-hero); color:var(--ink);
+  font-family:var(--font-body); -webkit-font-smoothing:antialiased;
+  display:flex; align-items:center; justify-content:center; padding:28px 18px;
+}
+h1,h2{font-family:var(--font-display); margin:0; letter-spacing:-.01em;}
+p{margin:0;}
+a{color:inherit; text-decoration:none;}
+button{font-family:var(--font-body); cursor:pointer;}
+:focus-visible{outline:2.5px solid var(--coral); outline-offset:3px; border-radius:6px;}
+
+.wrap{width:100%; max-width:440px;}
+.brand{display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:26px; font-family:var(--font-display); font-weight:700; font-size:1.3rem;}
+.brand-mark{width:42px; height:42px; border-radius:12px; background:var(--grad-brand); display:flex; align-items:center; justify-content:center; color:var(--on-brand); font-weight:800; font-family:var(--font-body); font-size:1.1rem; box-shadow:var(--shadow-sm); flex-shrink:0;}
+
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-xl); box-shadow:var(--shadow-lg); padding:32px 28px;}
+.card h1{font-size:1.6rem; font-weight:600;}
+.card .sub{color:var(--muted); font-size:.92rem; margin-top:6px; margin-bottom:26px;}
+
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:.82rem; font-weight:700; margin-bottom:6px; color:var(--ink-soft);}
+.input-wrap{position:relative;}
+.input-wrap i.left{position:absolute; left:14px; top:50%; transform:translateY(-50%); opacity:.5; font-size:.95rem;}
+.field input{width:100%; padding:12px 14px 12px 40px; border-radius:12px; border:1.5px solid var(--line); background:var(--bg-soft); color:var(--ink); font-size:.95rem; font-family:var(--font-body); transition:border-color .15s;}
+.field input:focus{outline:none; border-color:var(--teal);}
+.toggle-pw{position:absolute; right:6px; top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:8px; border:none; background:none; color:var(--muted); display:flex; align-items:center; justify-content:center; font-size:1rem;}
+.toggle-pw:hover{color:var(--teal);}
+.hint{font-size:.76rem; color:var(--muted); margin-top:6px;}
+
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:700; font-size:.94rem; padding:13px 24px; border-radius:999px; border:1px solid transparent; transition:transform .18s ease, box-shadow .18s ease, opacity .18s ease; width:100%;}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:var(--grad-brand); color:var(--on-brand); box-shadow:var(--shadow-md);}
+.btn-primary:hover{transform:translateY(-1px); box-shadow:var(--shadow-lg);}
+.btn-primary:disabled{opacity:.6; cursor:progress; transform:none;}
+.btn-ghost{background:var(--surface); color:var(--ink); border-color:var(--line);}
+.btn-ghost:hover{border-color:var(--teal); color:var(--teal);}
+.btn-ghost:disabled{opacity:.55; cursor:not-allowed;}
+
+.divider{display:flex; align-items:center; gap:12px; margin:20px 0; color:var(--muted); font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;}
+.divider::before,.divider::after{content:''; flex:1; height:1px; background:var(--line);}
+
+.alert{display:flex; align-items:flex-start; gap:10px; padding:12px 14px; border-radius:12px; background:var(--danger-tint); color:var(--danger); font-size:.86rem; font-weight:600; margin-bottom:18px; line-height:1.4;}
+.alert i{margin-top:1px; flex-shrink:0;}
+
+.foot-link{text-align:center; margin-top:22px; font-size:.9rem; color:var(--ink-soft);}
+.foot-link a{color:var(--teal); font-weight:700;}
+.foot-link a:hover{text-decoration:underline;}
+
+.back-home{display:flex; justify-content:center; margin-top:18px;}
+.back-home a{font-size:.85rem; color:var(--muted); font-weight:600; display:inline-flex; align-items:center; gap:6px;}
+.back-home a:hover{color:var(--teal);}
+
+.hidden{display:none !important;}
+
+.theme-toggle{position:fixed; top:16px; right:16px; width:40px; height:40px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm); font-size:1rem; z-index:50;}
+.theme-toggle:hover{border-color:var(--teal); color:var(--teal);}
+.accent-toggle{position:fixed; top:16px; right:66px; width:40px; height:40px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm); font-size:1rem; z-index:50;}
+.accent-toggle:hover{border-color:var(--teal); color:var(--teal);}
+.accent-panel{position:fixed; top:64px; right:16px; width:250px; max-width:calc(100vw - 32px); background:var(--surface); border:1px solid var(--line); border-radius:var(--r-md); box-shadow:var(--shadow-lg); padding:14px; z-index:150; opacity:0; visibility:hidden; transform:translateY(-6px); transition:opacity .18s ease, transform .18s ease, visibility .18s;}
+.accent-panel.open{opacity:1; visibility:visible; transform:translateY(0);}
+.accent-panel-title{font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:10px;}
+.accent-swatches{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.accent-swatch{display:flex; align-items:center; gap:8px; padding:8px; border-radius:10px; border:1.5px solid var(--line); background:transparent; text-align:left; font-family:var(--font-body);}
+.accent-swatch[aria-pressed="true"]{border-color:var(--swatch);}
+.accent-swatch-dot{width:15px; height:15px; border-radius:50%; background:var(--swatch); flex-shrink:0; box-shadow:0 0 0 2px var(--surface), 0 0 0 3.5px var(--swatch);}
+.accent-swatch-label{font-size:.75rem; font-weight:700; color:var(--ink); line-height:1.25;}
+.accent-swatch-label small{display:block; font-weight:500; color:var(--muted); font-size:.64rem;}
+</style>
+</head>
+<body data-theme="light">
+<button class="theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false">
+  <i class="bi bi-sun" id="themeIconSun" aria-hidden="true"></i>
+  <i class="bi bi-moon-stars" id="themeIconMoon" aria-hidden="true" style="display:none;"></i>
+</button>
+<button class="accent-toggle" id="accentBtn" aria-label="Choose accent color" aria-expanded="false" aria-haspopup="true">
+  <i class="bi bi-palette2" aria-hidden="true"></i>
+</button>
+<div class="accent-panel" id="accentPanel" role="dialog" aria-label="Accent color">
+  <div class="accent-panel-title">Accent color</div>
+  <div class="accent-swatches" id="accentSwatches"></div>
+</div>
+<div class="wrap">
+  <a class="brand" href="mitra-dashboard.html">
+    <span class="brand-mark" aria-hidden="true">M</span>
+    Mitra
+  </a>
+
+  <div class="card">
+    <h1>Create your account</h1>
+    <p class="sub">Free, and stored only on this device.</p>
+
+    <div id="alertBox" class="alert hidden" role="alert">
+      <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+      <span id="alertText"></span>
+    </div>
+
+    <form id="registerForm" novalidate>
+      <div class="field">
+        <label for="name">Full name</label>
+        <div class="input-wrap">
+          <i class="bi bi-person left" aria-hidden="true"></i>
+          <input type="text" id="name" name="name" placeholder="Asha Verma" autocomplete="name" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <div class="input-wrap">
+          <i class="bi bi-envelope left" aria-hidden="true"></i>
+          <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <i class="bi bi-lock left" aria-hidden="true"></i>
+          <input type="password" id="password" name="password" placeholder="At least 6 characters" autocomplete="new-password" style="padding-right:44px;" required>
+          <button type="button" class="toggle-pw" id="togglePw" aria-label="Show password" aria-pressed="false">
+            <i class="bi bi-eye" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="confirmPassword">Confirm password</label>
+        <div class="input-wrap">
+          <i class="bi bi-lock-fill left" aria-hidden="true"></i>
+          <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" required>
+        </div>
+        <p class="hint">Your password is hashed before it's stored — never kept in plain text.</p>
+      </div>
+      <button type="submit" class="btn btn-primary" id="submitBtn">
+        <span id="submitLabel">Create account</span>
+      </button>
+    </form>
+
+    <div class="divider">or</div>
+
+    <button type="button" class="btn btn-ghost" id="googleBtn" disabled title="Google sign-in is coming soon">
+      <i class="bi bi-google" aria-hidden="true"></i> Continue with Google <span style="font-weight:600; opacity:.65;">(coming soon)</span>
+    </button>
+
+    <p class="foot-link">Already have an account? <a href="login.html">Log in</a></p>
+  </div>
+
+  <div class="back-home">
+    <a href="mitra-dashboard.html"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to home</a>
+  </div>
+</div>
+
+<script src="mitra-auth.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  MitraAuth.initThemeToggle();
+  MitraAuth.initAccentPicker();
+
+  var form = document.getElementById('registerForm');
+  var alertBox = document.getElementById('alertBox');
+  var alertText = document.getElementById('alertText');
+  var submitBtn = document.getElementById('submitBtn');
+  var submitLabel = document.getElementById('submitLabel');
+  var togglePw = document.getElementById('togglePw');
+  var pwInput = document.getElementById('password');
+
+  MitraAuth.getCurrentUser().then(function(user){
+    if (user) window.location.href = 'mitra-dashboard.html';
+  });
+
+  togglePw.addEventListener('click', function(){
+    var show = pwInput.type === 'password';
+    pwInput.type = show ? 'text' : 'password';
+    togglePw.setAttribute('aria-pressed', String(show));
+    togglePw.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    togglePw.innerHTML = '<i class="bi ' + (show ? 'bi-eye-slash' : 'bi-eye') + '" aria-hidden="true"></i>';
+  });
+
+  function showError(msg){
+    alertBox.classList.remove('hidden');
+    alertText.textContent = msg;
+  }
+  function hideError(){
+    alertBox.classList.add('hidden');
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    hideError();
+    var name = document.getElementById('name').value;
+    var email = document.getElementById('email').value;
+    var password = pwInput.value;
+    var confirm = document.getElementById('confirmPassword').value;
+
+    if (password !== confirm){
+      showError('Passwords do not match.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitLabel.textContent = 'Creating account…';
+
+    MitraAuth.register(name, email, password).then(function(){
+      window.location.href = 'mitra-dashboard.html';
+    }).catch(function(err){
+      showError(err.message || 'Something went wrong. Please try again.');
+      submitBtn.disabled = false;
+      submitLabel.textContent = 'Create account';
+    });
+  });
+})();
+</script>
+</body>
+</html>
